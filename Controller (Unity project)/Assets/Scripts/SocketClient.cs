@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -7,6 +7,8 @@ using System.Threading;
 public class SocketClient
 {
     public static int port = 51399;
+    public static char delimiter = '\n';
+
     private Thread thread;
     private Socket socket;
     public Action<string> onMessageReceive;
@@ -23,7 +25,7 @@ public class SocketClient
     public void Send(string data)
     {
         //Encode data and send it to the client
-        byte[] bytes = Encoding.UTF8.GetBytes(data);
+        byte[] bytes = Encoding.UTF8.GetBytes(data + delimiter);
         socket.Send(bytes);
     }
 
@@ -46,12 +48,21 @@ public class SocketClient
     private void Receive()
     {
         //Wait for messages from the client and return them in the callback
+        string remaining = "";
         while (receiving)
         {
-            byte[] bytes = new byte[1024];
-            int numByte = socket.Receive(bytes);
-            if (numByte == 0) receiving = false;
-            if(receiving) onMessageReceive.Invoke(Encoding.ASCII.GetString(bytes, 0, numByte));
+            //Receive parts of the message until it is complete
+            string message = remaining;
+            while (!message.Contains(delimiter.ToString()))
+            {
+                byte[] bytes = new byte[1024];
+                int numByte = socket.Receive(bytes);
+                if (numByte == 0) receiving = false;
+                else message += Encoding.ASCII.GetString(bytes, 0, numByte);
+            }
+            string[] finalMessage = message.Split(delimiter);
+            remaining = finalMessage[1];
+            if (receiving) onMessageReceive.Invoke(finalMessage[0]);
         }
     }
 
