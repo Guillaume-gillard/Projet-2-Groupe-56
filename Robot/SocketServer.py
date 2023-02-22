@@ -3,6 +3,7 @@ from threading import Thread
 
 class SocketServer:
 	PORT = 51399
+	DELIMITER = "\n"
 
 	def startServer(self, callback):
 		# Create the socket and start the server in a thread
@@ -28,15 +29,21 @@ class SocketServer:
 		
 	def __receive(self):
 		# Receive messages and return them in the callback
+		remaining = ""
 		while self.receiving:
-			message = self.client.recv(1024)
-			if(message):
-				if self.receiving:
-					self.callback(message.decode())
-			else:
-				# Client disconnected
-				self.receiving = False
-				self.stopServer()
+			# Receive parts of the message until it is complete
+			message = remaining
+			while not self.DELIMITER in message:
+				messageBytes = self.client.recv(1024)
+				if(messageBytes):
+					message += messageBytes.decode()
+				else:
+					# Client disconnected
+					self.receiving = False
+					self.stopServer()
+			message = message.split(self.DELIMITER)
+			remaining = message[1]
+			if self.receiving: self.callback(message[0])
 				
 	def stopReceive(self):
 		# Stop receiving messages
@@ -44,7 +51,7 @@ class SocketServer:
 			
 	def send(self, message):
 		# Send a message to the client
-		self.client.send(message.encode())
+		self.client.send((message + self.DELIMITER).encode())
 
 	def sendBroadcast(self, message):
 		# Send a broadcast message to the network
@@ -75,7 +82,7 @@ if __name__ == "__main__": # Test: Simple chat
 			else:
 				try:
 					server.send(message)
-				except:
+				except Exception as e:
 					print("Client disconnected")
 					running = False
 
