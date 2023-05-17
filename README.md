@@ -1,7 +1,6 @@
 # Projet-2-Groupe-56
 
 ## ROBOT : 
-\
 Le programme du robot a été écrit en Python. L'entièreté du code est disponible dans le dossier "Robot".
 \
 \
