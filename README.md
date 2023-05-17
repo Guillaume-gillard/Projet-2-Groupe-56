@@ -1,5 +1,7 @@
 # Projet-2-Groupe-56
 
+Voici une vidéo de notre projet en action : https://youtu.be/bEwmq6CketA
+
 ## Robot : 
 Le programme du robot a été écrit en Python. L'entièreté du code est disponible dans le dossier "Robot".
 ## Télécommande : 
